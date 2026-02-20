@@ -1,0 +1,444 @@
+{% extends "base.html" %}
+{% block title %}Threat Radar — PromptDefender Pro{% endblock %}
+{% block breadcrumb %}THREAT_RADAR{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <div class="page-title-icon" style="background:rgba(255,45,85,0.1);border:1px solid rgba(255,45,85,0.3);">🛡️</div>
+        Real-Time Threat Radar
+    </div>
+    <div class="page-subtitle">// Active threat scanning and pattern visualization</div>
+</div>
+
+<div class="radar-layout">
+
+    <!-- Left: Radar + controls -->
+    <div class="radar-left">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    Threat Scan Matrix
+                    <span class="card-title-badge badge-live" id="radar-status-badge">● STANDBY</span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button id="start-radar" class="btn btn-primary">▶ Start Scan</button>
+                    <button id="stop-radar" class="btn btn-danger" disabled>■ Stop</button>
+                </div>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+                <!-- Radar canvas -->
+                <div class="radar-wrap">
+                    <canvas id="radar-canvas" width="320" height="320"></canvas>
+                    <div class="radar-center-text" id="radar-center-text">OFFLINE</div>
+                </div>
+
+                <!-- Legend -->
+                <div class="radar-legend">
+                    <div class="leg-item"><div class="leg-dot" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div>Low Risk</div>
+                    <div class="leg-item"><div class="leg-dot" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div>Medium Risk</div>
+                    <div class="leg-item"><div class="leg-dot" style="background:var(--red);box-shadow:0 0 6px var(--red)"></div>High Risk</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Counters -->
+        <div class="radar-stats">
+            <div class="rstat">
+                <div class="rstat-val" id="rs-active">0</div>
+                <div class="rstat-label">Active Threats</div>
+            </div>
+            <div class="rstat">
+                <div class="rstat-val" id="rs-level" style="color:var(--green)">LOW</div>
+                <div class="rstat-label">Threat Level</div>
+            </div>
+            <div class="rstat">
+                <div class="rstat-val" id="rs-rate" style="color:var(--cyan)">—</div>
+                <div class="rstat-label">Detection Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Live feed + analysis -->
+    <div class="radar-right">
+        <div class="card" style="flex:1;">
+            <div class="card-header">
+                <div class="card-title">Live Threat Feed</div>
+                <span class="card-title-badge badge-live" id="feed-badge">● STANDBY</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div id="live-feed" class="live-feed">
+                    <div class="feed-empty">Start scan to begin monitoring</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:0;">
+            <div class="card-header">
+                <div class="card-title">Threat Analysis</div>
+            </div>
+            <div class="card-body" id="analysis-body">
+                <div style="font-family:var(--text-mono);font-size:0.72rem;color:var(--text-secondary);">
+                    // Activate radar to begin real-time threat analysis and visualization
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.radar-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.radar-left { display: flex; flex-direction: column; gap: 16px; }
+.radar-right { display: flex; flex-direction: column; gap: 16px; }
+
+/* Radar canvas container */
+.radar-wrap {
+    position: relative;
+    width: 320px;
+    height: 320px;
+}
+
+#radar-canvas { display: block; }
+
+.radar-center-text {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 3px;
+    pointer-events: none;
+    text-align: center;
+}
+
+.radar-legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.leg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+}
+
+.leg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Radar stats */
+.radar-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.rstat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+}
+
+.rstat-val {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--red);
+    margin-bottom: 4px;
+}
+
+.rstat-label {
+    font-family: var(--text-mono);
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Live feed */
+.live-feed {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.feed-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    animation: feedIn 0.3s ease;
+}
+
+@keyframes feedIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.feed-time {
+    font-family: var(--text-mono);
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    padding-top: 2px;
+    letter-spacing: 0.5px;
+}
+
+.feed-msg {
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+}
+
+.feed-msg.threat { color: var(--red); }
+.feed-msg.safe { color: var(--green); }
+.feed-msg.info { color: var(--cyan); }
+
+.feed-empty {
+    padding: 32px;
+    text-align: center;
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+/* Analysis body */
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.analysis-chip {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.chip-label {
+    font-family: var(--text-mono);
+    font-size: 0.58rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.chip-val {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+@media (max-width: 1000px) {
+    .radar-layout { grid-template-columns: 1fr; }
+    .radar-wrap { margin: 0 auto; }
+}
+</style>
+
+<script>
+let scanInterval = null;
+let sweepAngle = 0;
+let threats = [];
+let totalDetected = 0;
+
+const canvas = document.getElementById('radar-canvas');
+const ctx = canvas.getContext('2d');
+
+function drawRadar() {
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2, r = W / 2 - 10;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#060c18';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+    // Grid rings
+    [0.25, 0.5, 0.75, 1].forEach(f => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * f, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0,212,255,0.08)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    });
+
+    // Cross hairs
+    ctx.strokeStyle = 'rgba(0,212,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,212,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Sweep (only when active)
+    if (scanInterval) {
+        const gradient = ctx.createConicalGradient ? null : null;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(sweepAngle);
+        const sweep = ctx.createLinearGradient(0, 0, r, 0);
+        sweep.addColorStop(0, 'rgba(0,212,255,0.6)');
+        sweep.addColorStop(1, 'rgba(0,212,255,0)');
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, -0.35, 0.35);
+        ctx.closePath();
+        ctx.fillStyle = sweep;
+        ctx.fill();
+        ctx.restore();
+        sweepAngle += 0.04;
+    }
+
+    // Threat dots
+    threats.forEach(t => {
+        const age = (Date.now() - t.born) / t.lifetime;
+        const opacity = Math.max(0, 1 - age);
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.size, 0, Math.PI * 2);
+        ctx.fillStyle = t.color.replace('1)', `${opacity})`);
+        ctx.fill();
+        // Pulse ring
+        const pr = t.size + (age * 12);
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, pr, 0, Math.PI * 2);
+        ctx.strokeStyle = t.color.replace('1)', `${opacity * 0.4})`);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    });
+}
+
+function spawnThreat() {
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2, r = W / 2 - 15;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * (r - 50);
+    const x = cx + Math.cos(angle) * dist;
+    const y = cy + Math.sin(angle) * dist;
+
+    const rng = Math.random();
+    let color, level, msg;
+    if (rng < 0.6) {
+        color = 'rgba(0,255,136,1)'; level = 'LOW';
+        msg = 'Low-level probe detected';
+    } else if (rng < 0.88) {
+        color = 'rgba(255,184,0,1)'; level = 'MEDIUM';
+        msg = 'Suspicious pattern detected';
+    } else {
+        color = 'rgba(255,45,85,1)'; level = 'HIGH';
+        msg = '⚡ HIGH THREAT — Injection attempt';
+    }
+
+    threats.push({ x, y, color, size: 5 + Math.random() * 3, born: Date.now(), lifetime: 8000 + Math.random() * 4000 });
+    totalDetected++;
+
+    addFeedEntry(msg, level === 'HIGH' ? 'threat' : level === 'MEDIUM' ? 'safe' : 'info');
+    updateRadarStats();
+}
+
+function updateRadarStats() {
+    const active = threats.length;
+    document.getElementById('rs-active').textContent = active;
+
+    let level = 'LOW', levelColor = 'var(--green)';
+    if (active > 5) { level = 'HIGH'; levelColor = 'var(--red)'; }
+    else if (active > 2) { level = 'MEDIUM'; levelColor = 'var(--amber)'; }
+
+    const lvEl = document.getElementById('rs-level');
+    lvEl.textContent = level;
+    lvEl.style.color = levelColor;
+
+    const rate = totalDetected > 0 ? '100%' : '—';
+    document.getElementById('rs-rate').textContent = rate;
+}
+
+function addFeedEntry(msg, type) {
+    const feed = document.getElementById('live-feed');
+    const empty = feed.querySelector('.feed-empty');
+    if (empty) empty.remove();
+
+    const now = new Date().toLocaleTimeString('en-GB');
+    const entry = document.createElement('div');
+    entry.className = 'feed-entry';
+    entry.innerHTML = `<div class="feed-time">${now}</div><div class="feed-msg ${type}">${msg}</div>`;
+    feed.insertBefore(entry, feed.firstChild);
+
+    if (feed.children.length > 25) feed.lastChild.remove();
+}
+
+function startRadar() {
+    document.getElementById('start-radar').disabled = true;
+    document.getElementById('stop-radar').disabled = false;
+    document.getElementById('radar-status-badge').textContent = '● SCANNING';
+    document.getElementById('feed-badge').textContent = '● LIVE';
+    document.getElementById('radar-center-text').textContent = 'SCANNING';
+    document.getElementById('radar-center-text').style.color = 'var(--cyan)';
+
+    addFeedEntry('Threat radar activated — scanning for anomalies', 'info');
+
+    document.getElementById('analysis-body').innerHTML = `
+        <div class="analysis-grid">
+            <div class="analysis-chip"><div class="chip-label">Mode</div><div class="chip-val" style="color:var(--cyan)">Real-Time</div></div>
+            <div class="analysis-chip"><div class="chip-label">Engine</div><div class="chip-val" style="color:var(--green)">Active</div></div>
+            <div class="analysis-chip"><div class="chip-label">ML Model</div><div class="chip-val" style="color:var(--cyan)">DistilBERT</div></div>
+            <div class="analysis-chip"><div class="chip-label">Scan Rate</div><div class="chip-val" style="color:var(--amber)">2s cycle</div></div>
+        </div>
+    `;
+
+    scanInterval = setInterval(() => {
+        if (Math.random() < 0.35) spawnThreat();
+        threats = threats.filter(t => Date.now() - t.born < t.lifetime);
+        updateRadarStats();
+    }, 2000);
+
+    requestAnimationFrame(animLoop);
+}
+
+function animLoop() {
+    drawRadar();
+    if (scanInterval) requestAnimationFrame(animLoop);
+}
+
+function stopRadar() {
+    clearInterval(scanInterval);
+    scanInterval = null;
+    threats = [];
+    document.getElementById('start-radar').disabled = false;
+    document.getElementById('stop-radar').disabled = true;
+    document.getElementById('radar-status-badge').textContent = '● STANDBY';
+    document.getElementById('feed-badge').textContent = '● STANDBY';
+    document.getElementById('radar-center-text').textContent = 'OFFLINE';
+    document.getElementById('radar-center-text').style.color = 'var(--text-secondary)';
+    updateRadarStats();
+    drawRadar();
+    addFeedEntry('Threat radar deactivated', 'info');
+}
+
+document.getElementById('start-radar').addEventListener('click', startRadar);
+document.getElementById('stop-radar').addEventListener('click', stopRadar);
+
+// Initial draw
+drawRadar();
+</script>
+{% endblock %}

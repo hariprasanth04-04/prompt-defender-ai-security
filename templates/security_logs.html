@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block title %}Security Logs — PromptDefender Pro{% endblock %}
+{% block breadcrumb %}SECURITY_LOGS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <div class="page-title-icon" style="background:rgba(255,184,0,0.1);border:1px solid rgba(255,184,0,0.3);">📋</div>
+        Security Event Logs
+    </div>
+    <div class="page-subtitle">// Complete audit trail of all analyzed prompts</div>
+</div>
+
+<!-- Stats row -->
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+    <div class="stat-card danger">
+        <div class="stat-label">Total Logs</div>
+        <div class="stat-value" id="s-total">0</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-label">Blocked</div>
+        <div class="stat-value" id="s-blocked">0</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">Allowed</div>
+        <div class="stat-value" id="s-allowed">0</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-label">Block Rate</div>
+        <div class="stat-value" id="s-rate">0%</div>
+    </div>
+</div>
+
+<!-- Log table -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Event Log</div>
+        <div style="display:flex;gap:8px;">
+            <button id="refresh-btn" class="btn btn-primary">↻ Refresh</button>
+            <button id="export-btn" class="btn btn-success">↓ Export CSV</button>
+            <button id="clear-btn" class="btn btn-danger">✕ Clear</button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="log-filters">
+        <div class="filter-wrap">
+            <span class="filter-label">STATUS</span>
+            <div class="filter-pills">
+                <button class="pill active" data-filter="all">All</button>
+                <button class="pill" data-filter="blocked">Blocked</button>
+                <button class="pill" data-filter="allowed">Allowed</button>
+            </div>
+        </div>
+        <div class="filter-wrap">
+            <span class="filter-label">SEARCH</span>
+            <div class="search-input-wrap">
+                <span>⌕</span>
+                <input type="text" id="log-search" placeholder="Filter by prompt or reason...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Prompt</th>
+                    <th>Status</th>
+                    <th>Detection Layer</th>
+                    <th>Reason</th>
+                    <th>ML Conf.</th>
+                </tr>
+            </thead>
+            <tbody id="log-tbody">
+                <tr><td colspan="6" class="table-empty">Loading logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <button id="prev-pg" class="btn btn-primary" disabled>← Prev</button>
+        <span class="pg-info" id="pg-info">Page 1 of 1</span>
+        <button id="next-pg" class="btn btn-primary" disabled>Next →</button>
+    </div>
+</div>
+
+<!-- Layer stats -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Detection Layer Breakdown</div>
+    </div>
+    <div class="card-body">
+        <div id="layer-breakdown" class="layer-breakdown">
+            <div style="font-family:var(--text-mono);font-size:0.72rem;color:var(--text-secondary);">No data yet</div>
+        </div>
+    </div>
+</div>
+
+<style>
+.log-filters {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.filter-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-label {
+    font-family: var(--text-mono);
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+    flex-shrink: 0;
+}
+
+.filter-pills { display: flex; gap: 6px; }
+
+.pill {
+    padding: 5px 12px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.pill:hover, .pill.active {
+    border-color: var(--border-bright);
+    color: var(--cyan);
+    background: var(--cyan-glow);
+}
+
+.search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.search-input-wrap input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    width: 200px;
+}
+
+.search-input-wrap input::placeholder { color: var(--text-secondary); }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.log-table th {
+    padding: 10px 16px;
+    font-family: var(--text-mono);
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-align: left;
+    background: var(--bg-deep);
+    border-bottom: 1px solid var(--border);
+}
+
+.log-table td {
+    padding: 11px 16px;
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.log-table tr:hover td { background: var(--bg-card-hover); }
+
+.table-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px !important;
+    font-style: italic;
+}
+
+.td-prompt {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conf-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.conf-low { background: var(--green-glow); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+.conf-mid { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(255,184,0,0.2); }
+.conf-high { background: var(--red-glow); color: var(--red); border: 1px solid rgba(255,45,85,0.2); }
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.pg-info {
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+/* Layer breakdown */
+.layer-breakdown { display: flex; flex-direction: column; gap: 10px; }
+
+.layer-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.layer-name {
+    width: 180px;
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.layer-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-deep);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.layer-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+}
+
+.layer-count {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--cyan);
+    width: 32px;
+    text-align: right;
+}
+</style>
+
+<script>
+let allLogs = [], filteredLogs = [], currentPage = 1, perPage = 10, currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadLogs();
+    document.getElementById('refresh-btn').addEventListener('click', loadLogs);
+    document.getElementById('export-btn').addEventListener('click', exportCSV);
+    document.getElementById('clear-btn').addEventListener('click', clearLogs);
+    document.getElementById('log-search').addEventListener('input', applyFilters);
+    document.getElementById('prev-pg').addEventListener('click', () => { currentPage--; renderTable(); });
+    document.getElementById('next-pg').addEventListener('click', () => { currentPage++; renderTable(); });
+
+    document.querySelectorAll('.pill').forEach(p => {
+        p.addEventListener('click', () => {
+            document.querySelectorAll('.pill').forEach(pp => pp.classList.remove('active'));
+            p.classList.add('active');
+            currentFilter = p.dataset.filter;
+            currentPage = 1;
+            applyFilters();
+        });
+    });
+});
+
+async function loadLogs() {
+    try {
+        const data = await apiCall('/api/logs');
+        allLogs = [...data.logs].reverse();
+        applyFilters();
+        updateStats();
+        showNotification('Logs refreshed', 'success');
+    } catch(e) {}
+}
+
+function applyFilters() {
+    const q = document.getElementById('log-search').value.toLowerCase();
+    filteredLogs = allLogs.filter(l => {
+        if (currentFilter === 'blocked' && !l.blocked) return false;
+        if (currentFilter === 'allowed' && l.blocked) return false;
+        if (q && !l.prompt.toLowerCase().includes(q) && !(l.reason || '').toLowerCase().includes(q)) return false;
+        return true;
+    });
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const tbody = document.getElementById('log-tbody');
+    if (filteredLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No logs match the current filters</td></tr>';
+        updatePagination();
+        return;
+    }
+    const start = (currentPage - 1) * perPage;
+    const page = filteredLogs.slice(start, start + perPage);
+
+    tbody.innerHTML = page.map(l => {
+        const conf = l.ml_confidence * 100;
+        const confClass = conf < 40 ? 'conf-low' : conf < 70 ? 'conf-mid' : 'conf-high';
+        return `
+        <tr>
+            <td style="color:var(--text-secondary);white-space:nowrap;">${l.timestamp}</td>
+            <td class="td-prompt" title="${l.prompt}">${l.prompt}</td>
+            <td><span class="status-badge ${l.blocked ? 'status-blocked' : 'status-safe'}">${l.blocked ? 'BLOCKED' : 'ALLOWED'}</span></td>
+            <td style="color:var(--cyan)">${l.layer || '—'}</td>
+            <td style="color:${l.blocked ? 'var(--red)' : 'var(--text-secondary)'};font-size:0.65rem;">${l.reason || '—'}</td>
+            <td><span class="conf-pill ${confClass}">${conf.toFixed(1)}%</span></td>
+        </tr>`;
+    }).join('');
+    updatePagination();
+}
+
+function updatePagination() {
+    const total = Math.max(1, Math.ceil(filteredLogs.length / perPage));
+    document.getElementById('pg-info').textContent = `Page ${currentPage} of ${total}`;
+    document.getElementById('prev-pg').disabled = currentPage <= 1;
+    document.getElementById('next-pg').disabled = currentPage >= total;
+}
+
+function updateStats() {
+    const total = allLogs.length;
+    const blocked = allLogs.filter(l => l.blocked).length;
+    const allowed = total - blocked;
+    const rate = total > 0 ? Math.round((blocked / total) * 100) : 0;
+    document.getElementById('s-total').textContent = total;
+    document.getElementById('s-blocked').textContent = blocked;
+    document.getElementById('s-allowed').textContent = allowed;
+    document.getElementById('s-rate').textContent = rate + '%';
+
+    // Layer breakdown
+    const layers = {};
+    allLogs.forEach(l => {
+        const k = l.layer || 'Unknown';
+        layers[k] = (layers[k] || 0) + 1;
+    });
+    const sorted = Object.entries(layers).sort((a, b) => b[1] - a[1]);
+    const maxV = sorted.length ? sorted[0][1] : 1;
+    const wrap = document.getElementById('layer-breakdown');
+    if (sorted.length === 0) {
+        wrap.innerHTML = '<div style="font-family:var(--text-mono);font-size:0.72rem;color:var(--text-secondary);">No data yet</div>';
+    } else {
+        wrap.innerHTML = sorted.map(([name, count]) => `
+            <div class="layer-row">
+                <div class="layer-name">${name}</div>
+                <div class="layer-bar-track"><div class="layer-bar-fill" style="width:${Math.round(count/maxV*100)}%"></div></div>
+                <div class="layer-count">${count}</div>
+            </div>
+        `).join('');
+    }
+}
+
+async function clearLogs() {
+    if (!confirm('Clear all security logs? This cannot be undone.')) return;
+    try {
+        await apiCall('/api/clear-logs', { method: 'POST' });
+        allLogs = []; filteredLogs = [];
+        renderTable(); updateStats();
+        showNotification('Logs cleared', 'success');
+    } catch(e) {}
+}
+
+function exportCSV() {
+    if (!allLogs.length) { showNotification('No logs to export', 'warning'); return; }
+    let csv = 'Timestamp,Prompt,Status,Detection Layer,Reason,ML Confidence\n';
+    allLogs.forEach(l => {
+        csv += [
+            `"${l.timestamp}"`,
+            `"${l.prompt.replace(/"/g, '""')}"`,
+            `"${l.blocked ? 'BLOCKED' : 'ALLOWED'}"`,
+            `"${l.layer || ''}"`,
+            `"${(l.reason || '').replace(/"/g, '""')}"`,
+            `"${(l.ml_confidence * 100).toFixed(1)}%"`
+        ].join(',') + '\n';
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `security-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    showNotification('Logs exported', 'success');
+}
+</script>
+{% endblock %}

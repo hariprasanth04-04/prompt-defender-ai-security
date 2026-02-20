@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — PromptDefender Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050810;
+            color: #e2e8f4;
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .error-code {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 9rem;
+            font-weight: 800;
+            color: #00d4ff;
+            text-shadow: 0 0 60px rgba(0,212,255,0.4);
+            line-height: 1;
+            margin-bottom: 16px;
+            animation: glitch 4s infinite;
+        }
+        @keyframes glitch {
+            0%, 90%, 100% { text-shadow: 0 0 60px rgba(0,212,255,0.4); transform: none; }
+            92% { transform: translate(-2px, 0); text-shadow: 2px 0 #ff2d55, -2px 0 #00d4ff; }
+            94% { transform: translate(2px, 0); text-shadow: -2px 0 #ff2d55, 2px 0 #00d4ff; }
+            96% { transform: none; }
+        }
+        .error-label {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            color: #7a8ba8;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .error-msg {
+            font-size: 0.85rem;
+            color: #7a8ba8;
+            max-width: 400px;
+            line-height: 1.8;
+            margin: 0 auto 32px;
+        }
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: rgba(0,212,255,0.08);
+            border: 1px solid rgba(0,212,255,0.4);
+            border-radius: 6px;
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .home-link:hover {
+            background: rgba(0,212,255,0.18);
+            box-shadow: 0 0 24px rgba(0,212,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-code">404</div>
+        <div class="error-label">// Page Not Found</div>
+        <div class="error-msg">The requested resource does not exist or has been relocated. This access attempt has been logged.</div>
+        <a href="/" class="home-link">← Return to Dashboard</a>
+    </div>
+</body>
+</html>

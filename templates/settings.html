@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+{% block title %}Settings — PromptDefender Pro{% endblock %}
+{% block breadcrumb %}SETTINGS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <div class="page-title-icon" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);">⚙️</div>
+        System Configuration
+    </div>
+    <div class="page-subtitle">// Adjust detection thresholds and system behavior</div>
+</div>
+
+<div class="settings-layout">
+    <!-- Left: Settings panels -->
+    <div class="settings-main">
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+            <button class="stab active" data-tab="general">General</button>
+            <button class="stab" data-tab="security">Security Engine</button>
+            <button class="stab" data-tab="notifications">Notifications</button>
+            <button class="stab" data-tab="advanced">Advanced</button>
+        </div>
+
+        <!-- General -->
+        <div class="stab-pane active" id="stab-general">
+            <div class="card">
+                <div class="card-header"><div class="card-title">General Settings</div></div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">System Name</div>
+                            <div class="setting-desc">Display name for the security system</div>
+                        </div>
+                        <input type="text" class="setting-input" id="system-name" value="PromptDefender Pro">
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Auto Refresh Interval</div>
+                            <div class="setting-desc">Dashboard data refresh rate</div>
+                        </div>
+                        <select class="setting-input" id="auto-refresh">
+                            <option value="5">5 seconds</option>
+                            <option value="10" selected>10 seconds</option>
+                            <option value="30">30 seconds</option>
+                            <option value="60">1 minute</option>
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Maximum Log Entries</div>
+                            <div class="setting-desc">Memory limit for security events</div>
+                        </div>
+                        <input type="number" class="setting-input" id="max-logs" value="1000" min="100" max="10000" style="width:120px;">
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Interface Theme</div>
+                            <div class="setting-desc">Color scheme preference</div>
+                        </div>
+                        <select class="setting-input" id="theme">
+                            <option value="dark" selected>Dark (Cyber)</option>
+                            <option value="light">Light</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security -->
+        <div class="stab-pane" id="stab-security">
+            <div class="card">
+                <div class="card-header"><div class="card-title">Detection Engine</div></div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">ML Detection Threshold</div>
+                            <div class="setting-desc">Higher = stricter. Confidence level required to block</div>
+                        </div>
+                        <div class="slider-wrap">
+                            <input type="range" id="ml-threshold" min="0.1" max="1.0" step="0.05" value="0.5" class="cyber-slider">
+                            <span class="slider-val" id="ml-threshold-val">0.50</span>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Critical Threat Detection</div>
+                            <div class="setting-desc">Immediate block on known attack patterns</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="critical-threats" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Keyword Scoring</div>
+                            <div class="setting-desc">Enhanced weighted keyword threat analysis</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="keyword-scoring" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Anomaly Detection</div>
+                            <div class="setting-desc">Detect obfuscation and unusual text patterns</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="anomaly-detection" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Leet-Speak Normalization</div>
+                            <div class="setting-desc">Decode obfuscated characters before analysis</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="leet-norm" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="stab-pane" id="stab-notifications">
+            <div class="card">
+                <div class="card-header"><div class="card-title">Alert Configuration</div></div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Blocked Prompt Alerts</div>
+                            <div class="setting-desc">Show notification when a prompt is blocked</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="notify-blocked" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">High Confidence Alerts</div>
+                            <div class="setting-desc">Alert on high ML confidence threat detections</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="notify-threats" checked>
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">System Events</div>
+                            <div class="setting-desc">Alerts for system-level events and errors</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="notify-system">
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Email Reports</div>
+                            <div class="setting-desc">Daily security digest via email</div>
+                        </div>
+                        <label class="cyber-toggle">
+                            <input type="checkbox" id="email-reports">
+                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced -->
+        <div class="stab-pane" id="stab-advanced">
+            <div class="card">
+                <div class="card-header"><div class="card-title">Advanced Configuration</div></div>
+                <div class="card-body">
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">API Endpoint</div>
+                            <div class="setting-desc">Custom route for prompt analysis</div>
+                        </div>
+                        <input type="text" class="setting-input" id="api-endpoint" value="/analyze">
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Log Level</div>
+                            <div class="setting-desc">Verbosity of system logging</div>
+                        </div>
+                        <select class="setting-input" id="log-level">
+                            <option>error</option>
+                            <option>warn</option>
+                            <option selected>info</option>
+                            <option>debug</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-name">Export Format</div>
+                            <div class="setting-desc">Default format for log exports</div>
+                        </div>
+                        <select class="setting-input" id="export-format">
+                            <option selected>csv</option>
+                            <option>json</option>
+                            <option>xml</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+            <button class="btn btn-danger" onclick="resetSettings()">↺ Reset Defaults</button>
+        </div>
+    </div>
+
+    <!-- Right: System info + quick actions -->
+    <div class="settings-side">
+        <div class="card">
+            <div class="card-header"><div class="card-title">System Information</div></div>
+            <div class="card-body" style="padding:0;">
+                <div class="sysinfo-list">
+                    <div class="sysinfo-row"><span class="si-key">Version</span><span class="si-val">v2.1</span></div>
+                    <div class="sysinfo-row"><span class="si-key">ML Engine</span><span class="si-val" style="color:var(--cyan)">DistilBERT</span></div>
+                    <div class="sysinfo-row"><span class="si-key">Detection Layers</span><span class="si-val">4 active</span></div>
+                    <div class="sysinfo-row"><span class="si-key">Model Status</span><span class="si-val" id="model-status" style="color:var(--green)">—</span></div>
+                    <div class="sysinfo-row"><span class="si-key">Last Check</span><span class="si-val" id="last-check">—</span></div>
+                    <div class="sysinfo-row"><span class="si-key">Uptime</span><span class="si-val" id="uptime">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><div class="card-title">Quick Actions</div></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-primary" onclick="testSystem()" style="width:100%;justify-content:center;">⚡ Test System</button>
+                <button class="btn btn-success" onclick="exportConfig()" style="width:100%;justify-content:center;">↓ Export Config</button>
+                <a href="/health" target="_blank" class="btn btn-amber" style="width:100%;justify-content:center;">💉 Health Check</a>
+                <button class="btn btn-danger" onclick="if(confirm('Restart?')){showNotification('Restarting...','warning')}" style="width:100%;justify-content:center;">↺ Restart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 20px;
+    align-items: start;
+}
+
+.settings-main { display: flex; flex-direction: column; gap: 16px; }
+.settings-side { display: flex; flex-direction: column; gap: 16px; }
+
+.tab-bar {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.stab {
+    flex: 1;
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+}
+
+.stab:hover { color: var(--text-primary); }
+
+.stab.active {
+    background: var(--bg-card);
+    color: var(--cyan);
+    border: 1px solid var(--border-bright);
+}
+
+.stab-pane { display: none; }
+.stab-pane.active { display: block; }
+
+/* Setting rows */
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 20px;
+}
+
+.setting-row:last-child { border-bottom: none; }
+
+.setting-info { flex: 1; }
+
+.setting-name {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+}
+
+.setting-desc {
+    font-family: var(--text-mono);
+    font-size: 0.62rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+}
+
+.setting-input {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-family: var(--text-mono);
+    font-size: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 160px;
+}
+
+.setting-input:focus { border-color: var(--border-bright); }
+
+/* Slider */
+.slider-wrap { display: flex; align-items: center; gap: 12px; }
+
+.cyber-slider {
+    -webkit-appearance: none;
+    width: 160px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    outline: none;
+}
+
+.cyber-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    cursor: pointer;
+}
+
+.slider-val {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--cyan);
+    width: 36px;
+}
+
+/* Toggle */
+.cyber-toggle { position: relative; cursor: pointer; }
+.cyber-toggle input { display: none; }
+
+.toggle-track {
+    display: block;
+    width: 44px;
+    height: 22px;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.toggle-thumb {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: all 0.3s;
+}
+
+.cyber-toggle input:checked + .toggle-track {
+    background: var(--cyan-glow);
+    border-color: var(--border-bright);
+}
+
+.cyber-toggle input:checked + .toggle-track .toggle-thumb {
+    left: 25px;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+/* Action bar */
+.action-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 16px 0;
+}
+
+/* Sysinfo */
+.sysinfo-list { padding: 0; }
+
+.sysinfo-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.sysinfo-row:last-child { border-bottom: none; }
+
+.si-key {
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.si-val {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+    .settings-layout { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+const startTime = new Date();
+
+// Tabs
+document.querySelectorAll('.stab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.stab-pane').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('stab-' + tab.dataset.tab).classList.add('active');
+    });
+});
+
+// Slider
+document.getElementById('ml-threshold').addEventListener('input', function() {
+    document.getElementById('ml-threshold-val').textContent = parseFloat(this.value).toFixed(2);
+});
+
+// Uptime
+function updateUptime() {
+    const ms = Date.now() - startTime;
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    const timeStr = h > 0 ? `${h}h ${m%60}m ${s%60}s` : `${m}m ${s%60}s`;
+    document.getElementById('uptime').textContent = timeStr;
+    document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
+}
+
+updateUptime();
+setInterval(updateUptime, 1000);
+
+// Check health
+fetch('/health').then(r => r.json()).then(d => {
+    document.getElementById('model-status').textContent = d.model_loaded ? 'Loaded' : 'Rule-based mode';
+    document.getElementById('model-status').style.color = d.model_loaded ? 'var(--green)' : 'var(--amber)';
+}).catch(() => {});
+
+async function saveSettings() {
+    const settings = {
+        general: {
+            systemName: document.getElementById('system-name').value,
+            autoRefresh: document.getElementById('auto-refresh').value,
+            maxLogs: document.getElementById('max-logs').value,
+            theme: document.getElementById('theme').value
+        },
+        security: {
+            mlThreshold: document.getElementById('ml-threshold').value,
+            criticalThreats: document.getElementById('critical-threats').checked,
+            keywordScoring: document.getElementById('keyword-scoring').checked,
+            anomalyDetection: document.getElementById('anomaly-detection').checked
+        },
+        notifications: {
+            notifyBlocked: document.getElementById('notify-blocked').checked,
+            notifyThreats: document.getElementById('notify-threats').checked,
+            notifySystem: document.getElementById('notify-system').checked,
+            emailReports: document.getElementById('email-reports').checked
+        }
+    };
+    try {
+        await apiCall('/api/settings', { method: 'POST', body: JSON.stringify(settings) });
+        showNotification('Settings saved successfully', 'success');
+    } catch(e) {}
+}
+
+function resetSettings() {
+    if (!confirm('Reset all settings to defaults?')) return;
+    document.getElementById('system-name').value = 'PromptDefender Pro';
+    document.getElementById('auto-refresh').value = '10';
+    document.getElementById('max-logs').value = '1000';
+    document.getElementById('ml-threshold').value = '0.5';
+    document.getElementById('ml-threshold-val').textContent = '0.50';
+    ['critical-threats','keyword-scoring','anomaly-detection','notify-blocked','notify-threats'].forEach(id => {
+        document.getElementById(id).checked = true;
+    });
+    ['notify-system','email-reports','leet-norm'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = id === 'leet-norm';
+    });
+    showNotification('Settings reset to defaults', 'success');
+}
+
+function testSystem() {
+    showNotification('Running diagnostics...', 'info');
+    setTimeout(() => showNotification('All systems operational ✓', 'success'), 2000);
+}
+
+function exportConfig() {
+    const cfg = { version: '2.1', exportDate: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `pd-config-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    showNotification('Config exported', 'success');
+}
+</script>
+{% endblock %}

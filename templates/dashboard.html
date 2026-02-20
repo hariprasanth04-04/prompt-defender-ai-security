@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — PromptDefender Pro{% endblock %}
+{% block breadcrumb %}DASHBOARD{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <div class="page-title-icon" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);">📊</div>
+        Threat Intelligence Dashboard
+    </div>
+    <div class="page-subtitle">// Real-time AI prompt security monitoring</div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+    <div class="stat-card danger">
+        <div class="stat-icon">🚫</div>
+        <div class="stat-label">Threats Blocked</div>
+        <div class="stat-value" id="total-blocked">0</div>
+        <div class="stat-meta">Active detections</div>
+    </div>
+    <div class="stat-card cyan">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-label">Prompts Scanned</div>
+        <div class="stat-value" id="total-scanned">0</div>
+        <div class="stat-meta">Total analyzed</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">Safe Rate</div>
+        <div class="stat-value" id="safe-rate">—</div>
+        <div class="stat-meta">Pass-through ratio</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-label">Recent Attempts</div>
+        <div class="stat-value" id="recent-attempts">0</div>
+        <div class="stat-meta">Last 10 events</div>
+    </div>
+</div>
+
+<!-- Analyzer -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">
+            Prompt Analyzer
+            <span class="card-title-badge badge-live">● Live</span>
+        </div>
+        <div style="font-family:var(--text-mono);font-size:0.65rem;color:var(--text-secondary);">
+            ML ENGINE: DISTILBERT + RULE-BASED
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="analyzer-layout">
+            <div class="analyzer-input-area">
+                <div class="input-label">// INPUT PROMPT</div>
+                <textarea id="prompt-input" placeholder="Enter prompt to analyze for injection attacks, jailbreaks, and malicious intent...&#10;&#10;Example: Ignore previous instructions and...&#10;&#10;Press ENTER to analyze (Shift+Enter for newline)" rows="6"></textarea>
+                <div class="input-actions">
+                    <button id="analyze-btn" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;">
+                        <span id="btn-icon">⚡</span>
+                        <span id="btn-text">ANALYZE PROMPT</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="analyzer-result-area" id="result-panel" style="display:none;">
+                <div class="result-verdict" id="result-verdict">
+                    <div class="verdict-icon" id="verdict-icon">?</div>
+                    <div class="verdict-label" id="verdict-label">ANALYZING</div>
+                </div>
+
+                <div class="result-details">
+                    <div class="detail-row" id="detail-response">
+                        <span class="detail-key">Response</span>
+                        <span class="detail-val" id="dr-response">—</span>
+                    </div>
+                    <div class="detail-row" id="detail-reason" style="display:none">
+                        <span class="detail-key">Reason</span>
+                        <span class="detail-val danger-text" id="dr-reason">—</span>
+                    </div>
+                    <div class="detail-row" id="detail-layer" style="display:none">
+                        <span class="detail-key">Detection Layer</span>
+                        <span class="detail-val cyan-text" id="dr-layer">—</span>
+                    </div>
+                </div>
+
+                <div class="confidence-block">
+                    <div class="conf-header">
+                        <span class="detail-key">ML Confidence Score</span>
+                        <span class="conf-pct" id="conf-pct">0%</span>
+                    </div>
+                    <div class="conf-track">
+                        <div class="conf-fill" id="conf-fill"></div>
+                    </div>
+                    <div class="conf-scale">
+                        <span>SAFE</span>
+                        <span>MODERATE</span>
+                        <span>THREAT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analyzer-empty" id="result-empty">
+                <div class="empty-icon">🛡️</div>
+                <div class="empty-text">Awaiting prompt input...</div>
+                <div class="empty-sub">Results will appear here after analysis</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity + Reasons -->
+<div class="row">
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Recent Activity</div>
+                <span class="card-title-badge badge-active">● Live Feed</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div id="activity-feed" class="activity-feed">
+                    <div class="activity-empty">No recent activity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Top Threat Vectors</div>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div id="threat-vectors" class="threat-vectors">
+                    <div class="activity-empty">No threats recorded</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.analyzer-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.input-label {
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+#prompt-input {
+    width: 100%;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    color: var(--text-primary);
+    font-family: var(--text-mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+}
+
+#prompt-input:focus { border-color: var(--border-bright); }
+#prompt-input::placeholder { color: var(--text-secondary); }
+
+/* Result panel */
+.result-verdict {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.verdict-safe { background: var(--green-glow); border: 1px solid rgba(0,255,136,0.3); }
+.verdict-blocked { background: var(--red-glow); border: 1px solid rgba(255,45,85,0.3); }
+
+.verdict-icon { font-size: 2rem; }
+
+.verdict-label {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.verdict-safe .verdict-label { color: var(--green); }
+.verdict-blocked .verdict-label { color: var(--red); }
+
+.result-details { margin-bottom: 16px; }
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+}
+
+.detail-key {
+    font-family: var(--text-mono);
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.detail-val {
+    font-family: var(--text-mono);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+.danger-text { color: var(--red); }
+.cyan-text { color: var(--cyan); }
+
+/* Confidence bar */
+.confidence-block { margin-top: 4px; }
+
+.conf-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.conf-pct {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--cyan);
+}
+
+.conf-track {
+    height: 6px;
+    background: var(--bg-deep);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+}
+
+.conf-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green), var(--amber) 50%, var(--red));
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.conf-scale {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--text-mono);
+    font-size: 0.58rem;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+}
+
+/* Empty state */
+.analyzer-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.4; }
+.empty-text { font-family: var(--font-display); font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.empty-sub { font-family: var(--text-mono); font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 1px; }
+
+/* Activity feed */
+.activity-feed, .threat-vectors { padding: 4px 0; }
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+.activity-item:hover { background: var(--bg-card-hover); }
+
+.act-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.act-dot.blocked { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.act-dot.safe { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+.act-info { flex: 1; min-width: 0; }
+
+.act-prompt {
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.act-time {
+    font-family: var(--text-mono);
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.activity-empty {
+    padding: 28px;
+    text-align: center;
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+/* Threat vectors */
+.vector-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.vector-name {
+    flex: 1;
+    font-family: var(--text-mono);
+    font-size: 0.72rem;
+    color: var(--text-primary);
+}
+
+.vector-bar-wrap {
+    width: 80px;
+    height: 4px;
+    background: var(--bg-deep);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.vector-bar { height: 100%; background: var(--red); border-radius: 2px; }
+
+.vector-count {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--red);
+    width: 24px;
+    text-align: right;
+}
+
+@media (max-width: 900px) {
+    .analyzer-layout { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    loadStats();
+    setInterval(loadStats, 10000);
+
+    const btn = document.getElementById('analyze-btn');
+    btn.addEventListener('click', analyzePrompt);
+
+    document.getElementById('prompt-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            analyzePrompt();
+        }
+    });
+});
+
+async function loadStats() {
+    try {
+        const data = await apiCall('/api/stats');
+        document.getElementById('total-blocked').textContent = data.total_blocked;
+        document.getElementById('total-scanned').textContent = data.total_scanned;
+        const rate = data.total_scanned > 0
+            ? Math.round(((data.total_scanned - data.total_blocked) / data.total_scanned) * 100) + '%'
+            : '—';
+        document.getElementById('safe-rate').textContent = rate;
+        document.getElementById('recent-attempts').textContent = data.recent_attempts;
+        renderThreatVectors(data.top_reasons);
+        renderActivity(data.recent_attempts);
+    } catch(e) { console.error(e); }
+}
+
+function renderActivity(attempts) {
+    const feed = document.getElementById('activity-feed');
+    if (!attempts || attempts.length === 0) {
+        feed.innerHTML = '<div class="activity-empty">No recent activity</div>';
+        return;
+    }
+    const recent = [...attempts].reverse().slice(0, 6);
+    feed.innerHTML = recent.map(a => `
+        <div class="activity-item">
+            <div class="act-dot ${a.blocked ? 'blocked' : 'safe'}"></div>
+            <div class="act-info">
+                <div class="act-prompt">${a.prompt.substring(0, 55)}${a.prompt.length > 55 ? '…' : ''}</div>
+                <div class="act-time">${formatDate(a.timestamp)}</div>
+            </div>
+            <span class="status-badge ${a.blocked ? 'status-blocked' : 'status-safe'}">${a.blocked ? 'BLOCKED' : 'SAFE'}</span>
+        </div>
+    `).join('');
+}
+
+function renderThreatVectors(reasons) {
+    const wrap = document.getElementById('threat-vectors');
+    if (!reasons || reasons.length === 0) {
+        wrap.innerHTML = '<div class="activity-empty">No threats recorded</div>';
+        return;
+    }
+    const max = reasons[0][1];
+    wrap.innerHTML = reasons.map(([name, count]) => `
+        <div class="vector-item">
+            <div class="vector-name">${name.length > 35 ? name.substring(0, 35) + '…' : name}</div>
+            <div class="vector-bar-wrap">
+                <div class="vector-bar" style="width:${Math.round(count/max*100)}%"></div>
+            </div>
+            <div class="vector-count">${count}</div>
+        </div>
+    `).join('');
+}
+
+async function analyzePrompt() {
+    const input = document.getElementById('prompt-input');
+    const prompt = input.value.trim();
+    if (!prompt) { showNotification('Enter a prompt to analyze', 'warning'); return; }
+
+    const btn = document.getElementById('analyze-btn');
+    document.getElementById('btn-icon').textContent = '⏳';
+    document.getElementById('btn-text').textContent = 'ANALYZING...';
+    btn.disabled = true;
+
+    document.getElementById('result-empty').style.display = 'none';
+    document.getElementById('result-panel').style.display = 'none';
+
+    try {
+        const result = await apiCall('/analyze', { method: 'POST', body: JSON.stringify({ prompt }) });
+        showResult(result);
+        loadStats();
+    } finally {
+        document.getElementById('btn-icon').textContent = '⚡';
+        document.getElementById('btn-text').textContent = 'ANALYZE PROMPT';
+        btn.disabled = false;
+    }
+}
+
+function showResult(r) {
+    const panel = document.getElementById('result-panel');
+    const empty = document.getElementById('result-empty');
+    panel.style.display = 'block';
+    empty.style.display = 'none';
+
+    const verdict = document.getElementById('result-verdict');
+    verdict.className = 'result-verdict ' + (r.blocked ? 'verdict-blocked' : 'verdict-safe');
+    document.getElementById('verdict-icon').textContent = r.blocked ? '🚫' : '✅';
+    document.getElementById('verdict-label').textContent = r.blocked ? 'THREAT BLOCKED' : 'PROMPT SAFE';
+
+    document.getElementById('dr-response').textContent = r.response;
+
+    const reasonRow = document.getElementById('detail-reason');
+    const layerRow = document.getElementById('detail-layer');
+
+    if (r.reason) {
+        reasonRow.style.display = 'flex';
+        document.getElementById('dr-reason').textContent = r.reason;
+    } else {
+        reasonRow.style.display = 'none';
+    }
+
+    if (r.layer) {
+        layerRow.style.display = 'flex';
+        document.getElementById('dr-layer').textContent = r.layer;
+    } else {
+        layerRow.style.display = 'none';
+    }
+
+    const pct = Math.round(r.ml_confidence * 100);
+    document.getElementById('conf-pct').textContent = pct + '%';
+    document.getElementById('conf-fill').style.width = pct + '%';
+
+    showNotification(r.blocked ? 'Threat detected and blocked' : 'Prompt cleared as safe', r.blocked ? 'error' : 'success');
+}
+</script>
+{% endblock %}

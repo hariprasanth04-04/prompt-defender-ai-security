@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 — PromptDefender Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050810;
+            color: #e2e8f4;
+            font-family: 'Share Tech Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,45,85,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,45,85,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .error-code {
+            font-family: 'Exo 2', sans-serif;
+            font-size: 9rem;
+            font-weight: 800;
+            color: #ff2d55;
+            text-shadow: 0 0 60px rgba(255,45,85,0.4);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .error-label {
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            color: #7a8ba8;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .error-msg {
+            font-size: 0.85rem;
+            color: #7a8ba8;
+            max-width: 400px;
+            line-height: 1.8;
+            margin: 0 auto 20px;
+        }
+        .error-id {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,45,85,0.08);
+            border: 1px solid rgba(255,45,85,0.2);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #ff2d55;
+            letter-spacing: 1px;
+            margin-bottom: 28px;
+        }
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: rgba(255,45,85,0.08);
+            border: 1px solid rgba(255,45,85,0.4);
+            border-radius: 6px;
+            color: #ff2d55;
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .home-link:hover {
+            background: rgba(255,45,85,0.18);
+            box-shadow: 0 0 24px rgba(255,45,85,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-code">500</div>
+        <div class="error-label">// Internal Server Error</div>
+        <div class="error-msg">A critical failure occurred in the security engine. The incident has been recorded and the team has been notified.</div>
+        <div class="error-id">ERR_ID: #PD-{{ range(1000, 9999) | random }}</div>
+        <br>
+        <a href="/" class="home-link">← Return to Dashboard</a>
+    </div>
+</body>
+</html>
